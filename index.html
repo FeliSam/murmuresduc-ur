@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Murmures du Cœur - Votre sanctuaire émotionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-light: #ede9fe;
+      --primary-dark: #5b21b6;
+      --secondary: #ec4899;
+      --secondary-light: #fce7f3;
+      --accent: #06b6d4;
+      --accent-light: #cffafe;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --text-muted: #94a3b8;
+      --border: #e2e8f0;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      --shadow-hover: 0 20px 40px rgba(124, 58, 237, 0.1);
+      --gradient: linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #06b6d4 100%);
+      --gradient-light: linear-gradient(135deg, #ede9fe 0%, #fce7f3 50%, #cffafe 100%);
+      --radius: 20px;
+      --radius-sm: 12px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      line-height:1.7;
+      background-image: 
+        radial-gradient(circle at 5% 15%, rgba(124, 58, 237, 0.03) 0%, transparent 25%),
+        radial-gradient(circle at 95% 85%, rgba(236, 72, 153, 0.03) 0%, transparent 25%);
+    }
+    
+    .hidden { display: none !important; }
+    .fade-in { animation: fadeIn 0.6s ease-out; }
+    .pulse { animation: pulse 2s infinite; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes heartBeat {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.3); }
+      50% { transform: scale(1); }
+      75% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes notificationPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Modal Styles */
+    .modal {
+      position: fixed; 
+      top:0; left:0; 
+      width:100%; height:100%;
+      background: rgba(15, 23, 42, 0.7); 
+      display:flex; align-items:center; justify-content:center; 
+      z-index:1000;
+      backdrop-filter: blur(8px);
+    }
+    
+    .modal-content {
+      background: var(--card-bg); 
+      padding: 2.5rem; 
+      border-radius: var(--radius); 
+      width:92%; max-width:480px;
+      box-shadow: var(--shadow-hover); 
+      text-align:center;
+      border: 1px solid var(--border);
+      transform: scale(0.9);
+      animation: modalAppear 0.4s ease-out forwards;
+    }
+
+    @keyframes modalAppear {
+      to { transform: scale(1); }
+    }
+
+    .modal h2 {
+      color: var(--primary); 
+      margin-bottom: 1rem; 
+      font-size: 1.75rem;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+    }
+    
+    .modal p {
+      color: var(--text-light); 
+      margin-bottom: 1.5rem; 
+      font-size: 1rem;
+    }
+    
+    input, textarea, select {
+      width:100%; 
+      padding:1rem; 
+      margin-bottom:1.2rem; 
+      border:2px solid var(--border); 
+      border-radius:var(--radius-sm); 
+      font-family:inherit; 
+      font-size:1rem;
+      transition: var(--transition);
+      background: #fcfcfc;
+    }
+    
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+      background: white;
+      transform: translateY(-2px);
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    
+    button {
+      background: var(--gradient); 
+      color:white; 
+      border:none; 
+      padding:1rem 1.5rem; 
+      border-radius:var(--radius-sm);
+      font-weight:600; 
+      cursor:pointer; 
+      font-family:inherit; 
+      width:100%; 
+      font-size:1rem;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    button:hover { 
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    button:active { transform: translateY(-1px); }
+    
+    .btn-secondary {
+      background: transparent; 
+      color: var(--primary); 
+      border: 2px solid var(--primary);
+      margin-top:0.5rem;
+    }
+    
+    .btn-secondary:hover { 
+      background: var(--primary-light); 
+      transform: translateY(-3px);
+    }
+
+    .btn-small {
+      width: auto;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    /* Header Styles */
+    header {
+      background: rgba(255, 255, 255, 0.9); 
+      box-shadow: var(--shadow); 
+      padding:1rem 2rem;
+      position:sticky; 
+      top:0; 
+      z-index:100;
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+    }
+    
+    .header-content {
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center; 
+      max-width:1400px; 
+      margin:0 auto;
+      position: relative;
+    }
+    
+    .site-title { 
+      font-size:1.8rem; 
+      font-weight:700; 
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-family: 'Playfair Display', serif;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    /* Menu responsive */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--primary);
+      cursor: pointer;
+      padding: 0.5rem;
+      z-index: 101;
+    }
+
+    nav ul { 
+      list-style:none; 
+      display:flex; 
+      gap:1.5rem; 
+      align-items:center; 
+    }
+    
+    nav a { 
+      text-decoration:none; 
+      color:var(--text); 
+      font-weight:500; 
+      padding:0.6rem 1rem; 
+      border-radius:var(--radius-sm); 
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+    }
+    
+    nav a:hover { 
+      background: var(--primary-light); 
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    nav a.active { 
+      background: var(--primary-light); 
+      color: var(--primary);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--danger);
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      animation: notificationPulse 1s ease-in-out;
+    }
+    
+    .user-menu {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .user-info { 
+      color: var(--text); 
+      font-weight:600; 
+      display:flex; 
+      align-items:center; 
+      gap:0.5rem; 
+      background: var(--primary-light);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .user-info:hover {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .user-info i { color: var(--primary); }
+    
+    .user-info:hover i {
+      color: white;
+    }
+
+    .user-mood {
+      font-size: 1.2rem;
+      margin-left: 0.5rem;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-hover);
+      padding: 0.5rem;
+      min-width: 150px;
+      z-index: 1000;
+      display: none;
+      border: 1px solid var(--border);
+    }
+
+    .user-dropdown.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .user-dropdown a {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      text-decoration: none;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+
+    .user-dropdown a:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    /* Section Styles */
+    section { 
+      display:none; 
+      padding:2rem 1.5rem; 
+      min-height: calc(100vh - 80px);
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .active { display:block; }
+    
+    .card { 
+      background:var(--card-bg); 
+      border-radius:var(--radius); 
+      box-shadow: var(--shadow); 
+      padding:2rem; 
+      margin:0 auto;
+      width: 100%;
+      max-width: 1000px;
+      border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .card h2 { 
+      color:var(--primary); 
+      margin-bottom:1rem; 
+      font-size:1.8rem;
+      font-family: 'Playfair Display', serif;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .card p { 
+      color: var(--text-light); 
+      margin-bottom:1.5rem; 
+      font-size: 1.1rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: var(--gradient-light);
+      border-radius: var(--radius);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%237c3aed' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+      opacity: 0.5;
+    }
+    
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-light);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+
+    /* Stats Cards */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      text-align: center;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient);
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    /* Chat Styles */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    
+    .chat-messages { 
+      flex: 1; 
+      overflow-y:auto; 
+      background:#f8fafc; 
+      padding:1.5rem; 
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .date-separator {
+      text-align: center;
+      margin: 1rem 0;
+      position: relative;
+    }
+    
+    .date-separator::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--border);
+      z-index: 1;
+    }
+    
+    .date-label {
+      background: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--text-light);
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: inline-block;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .chat-message {
+      background:white; 
+      padding:1.2rem; 
+      border-radius:16px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+      position: relative;
+      max-width: 70%;
+    }
+    
+    .chat-message:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .chat-message.own {
+      background: var(--primary-light);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .chat-message.other {
+      background: white;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    
+    .chat-pseudo { 
+      font-weight:600; 
+      color:var(--primary); 
+      margin-bottom:0.5rem; 
+      font-size:0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .chat-actions { 
+      margin-top:0.8rem; 
+      text-align:right; 
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+    
+    .chat-actions button { 
+      width: auto; 
+      padding:0.4rem 0.8rem; 
+      font-size:0.8rem; 
+      border-radius:8px;
+      background: transparent;
+      color: var(--text-light);
+      border: 1px solid var(--border);
+    }
+    
+    .chat-actions button:hover { 
+      background: white;
+      transform: translateY(-2px);
+    }
+    
+    .btn-delete { 
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    
+    .btn-edit { 
+      color: var(--warning);
+      border-color: var(--warning);
+    }
+
+    .chat-input-container {
+      padding: 1.5rem;
+      background: white;
+      border-top: 1px solid var(--border);
+    }
+
+    .edit-mode-banner {
+      background: var(--warning);
+      color: white;
+      padding: 0.8rem;
+      text-align: center;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    /* Radio Options */
+    .privacy-options {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .privacy-option {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .privacy-option input[type="radio"] {
+      display: none;
+    }
+    
+    .privacy-option label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+    }
+    
+    .privacy-option label:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .privacy-option input[type="radio"]:checked + label {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .privacy-option .radio-icon {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+    
+    .privacy-option input[type="radio"]:checked + label .radio-icon {
+      border-color: var(--primary);
+      background: var(--primary);
+    }
+    
+    .privacy-option input[type="radio"]:checked + label .radio-icon::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    /* Cris Section */
+    .cris-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(1fr, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .cris-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .cris-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .cris-content {
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    
+    .cris-meta {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+    
+    .support-section {
+      display: flex;
+      align-items: center;
+width:150px;
+      gap: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .support-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--primary-light);
+      border: none;
+      border-radius: 20px;
+      color: var(--primary);
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .support-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+    
+    .support-btn.active {
+      background: var(--secondary);
+      color: white;
+      animation: heartBeat 0.6s ease;
+    }
+    
+    .support-count {
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .cris-actions {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+    }
+    
+    .action-btn.edit {
+      color: var(--warning);
+    }
+    
+    .action-btn.delete {
+      color: var(--danger);
+    }
+    
+    .action-btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* Mes Publications */
+    .publications-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(1fr, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    /* Emotional Well-being Tips */
+    .tips-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .tip-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tip-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient);
+    }
+    
+    .tip-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .tip-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--primary-light);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      color: var(--primary);
+      font-size: 1.8rem;
+    }
+
+    /* Mood Tracker */
+    .mood-tracker {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+    
+    .mood-options {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    
+    .mood-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      border: 2px solid transparent;
+    }
+    
+    .mood-option:hover {
+      background: var(--primary-light);
+    }
+    
+    .mood-option.active {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+    }
+    
+    .mood-emoji {
+      font-size: 2rem;
+    }
+
+    /* Resources Section */
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .resource-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+    
+    .resource-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    /* Utility Classes */
+    .error { 
+      color: var(--danger); 
+      font-size: 0.9rem; 
+      margin-top: 0.4rem; 
+      min-height: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .success { 
+      color: var(--success); 
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .loading { 
+      text-align: center; 
+      color: var(--text-muted); 
+      padding: 2rem; 
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .text-muted { color: var(--text-muted); }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .header-content {
+        padding: 0 1rem;
+      }
+      
+      section {
+        padding: 1.5rem 1rem;
+      }
+      
+      .card {
+        padding: 1.5rem;
+      }
+      
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+    }
+
+    @media (max-width: 968px) {
+      .header-content {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 1rem;
+      }
+      
+      .menu-toggle {
+        display: block;
+      }
+      
+      nav {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        background: white;
+        box-shadow: var(--shadow);
+        padding: 1rem;
+        transform: translateY(-100%);
+        opacity: 0;
+        transition: var(--transition);
+        z-index: 99;
+        border-top: 1px solid var(--border);
+      }
+      
+      nav.active {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      
+      nav ul {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      
+      nav a {
+        padding: 1rem;
+        justify-content: flex-start;
+        border-radius: var(--radius-sm);
+      }
+      
+      .user-info {
+        background: none;
+        padding: 0;
+        margin-top: 0.5rem;
+      }
+      
+      .user-menu {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        width: 100%;
+      }
+      
+      .user-dropdown {
+        position: static;
+        box-shadow: none;
+        border: none;
+        background: var(--primary-light);
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+      
+      .site-title {
+        font-size: 1.5rem;
+      }
+      
+      .hero {
+        padding: 2rem 1rem;
+      }
+      
+      .hero h1 {
+        font-size: 2rem;
+      }
+      
+      .hero p {
+        font-size: 1rem;
+      }
+      
+      .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+      
+      .stat-card {
+        padding: 1rem;
+      }
+      
+      .stat-number {
+        font-size: 2rem;
+      }
+      
+      .privacy-options {
+        flex-direction: column;
+      }
+      
+      .privacy-option {
+        min-width: auto;
+      }
+      
+      .chat-container {
+        height: 500px;
+      }
+      
+      .chat-message {
+        max-width: 85%;
+        padding: 1rem;
+      }
+      
+      .cris-grid,
+      .publications-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .tips-container,
+      .resources-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .mood-options {
+        gap: 0.5rem;
+      }
+      
+      .mood-option {
+        padding: 0.75rem;
+      }
+      
+      .mood-emoji {
+        font-size: 1.5rem;
+      }
+      
+      .card h2 {
+        font-size: 1.5rem;
+      }
+      
+      .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header-content {
+        padding: 0.75rem;
+      }
+      
+      .site-title {
+        font-size: 1.3rem;
+      }
+      
+      .hero h1 {
+        font-size: 1.8rem;
+      }
+      
+      .stats-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .stat-number {
+        font-size: 1.8rem;
+      }
+      
+      .chat-message {
+        max-width: 95%;
+      }
+      
+      .chat-actions {
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      
+      .chat-actions button {
+        width: 100%;
+      }
+      
+      .mood-options {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .mood-option {
+        width: 100%;
+        max-width: 200px;
+      }
+      
+      section {
+        padding: 1rem 0.5rem;
+      }
+      
+      .card {
+        padding: 1rem;
+        border-radius: var(--radius-sm);
+      }
+      
+      .cris-card,
+      .tip-card,
+      .resource-card {
+        padding: 1rem;
+      }
+      
+      .support-section {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .hero h1 {
+        font-size: 1.5rem;
+      }
+      
+      .hero p {
+        font-size: 0.9rem;
+      }
+      
+      .site-title {
+        font-size: 1.2rem;
+      }
+      
+      .stat-card {
+        padding: 0.75rem;
+      }
+      
+      .stat-number {
+        font-size: 1.5rem;
+      }
+    }
+
+    @media (min-width: 1400px) {
+      .header-content,
+      section {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      
+      .hero h1 {
+        font-size: 3.5rem;
+      }
+      
+      .stats-container {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      button, 
+      .nav-link, 
+      .mood-option, 
+      .support-btn {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      
+      input, 
+      textarea {
+        font-size: 16px;
+      }
+      
+      .chat-actions button {
+        padding: 0.75rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Modal connexion / inscription -->
+  <div id="auth-modal" class="modal">
+    <div class="modal-content fade-in">
+      <div style="width: 80px; height: 80px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: var(--primary); font-size: 2rem;">
+        <i class="fas fa-heart"></i>
+      </div>
+      <h2>Bienvenue parmi nous</h2>
+      <p>Rejoignez notre communauté bienveillante et exprimez-vous librement</p>
+      <input type="text" id="login-pseudo" placeholder="Votre pseudonyme (2–20 caractères)">
+      <input type="password" id="login-password" placeholder="Mot de passe (3 caractères minimum)">
+      <button id="login-btn">
+        <i class="fas fa-sign-in-alt"></i> Se connecter
+      </button>
+      <button id="signup-btn" class="btn-secondary">
+        <i class="fas fa-user-plus"></i> Créer un compte
+      </button>
+      <div id="auth-error" class="error"></div>
+    </div>
+  </div>
+
+  <header>
+    <div class="header-content">
+      <h1 class="site-title">
+        <i class="fas fa-heart"></i> Murmures du Cœur
+      </h1>
+      
+      <button class="menu-toggle" id="menu-toggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      
+      <nav id="main-nav">
+        <ul>
+          <li><a href="#" class="nav-link active" data-page="home"><i class="fas fa-home"></i> </a></li>
+          <li><a href="#" class="nav-link" data-page="chat" id="chat-nav-link">
+            <i class="fas fa-comments"></i> 
+            <span id="chat-notification" class="notification-badge hidden">0</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="cris" id="cris-nav-link">
+            <i class="fas fa-volume-up"></i>             <span id="cris-notification" class="notification-badge hidden">0</span>
+          </a></li>
+          <li><a href="#" class="nav-link" data-page="publications"><i class="fas fa-newspaper"></i> </a></li>
+          <li><a href="#" class="nav-link" data-page="resources"><i class="fas fa-hands-helping"></i> Ressources</a></li>
+          <li class="user-menu">
+            <div id="user-info" class="user-info hidden">
+              <i class="fas fa-user"></i> 
+              <span id="user-display"></span>
+              <span id="user-mood" class="user-mood"></span>
+              <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+            </div>
+            <div class="user-dropdown" id="user-dropdown">
+              <a href="#" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Se déconnecter
+              </a>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section id="home" class="active fade-in">
+    <div class="hero">
+      <h1>Votre sanctuaire émotionnel</h1>
+      <p>Un espace sûr pour partager vos sentiments, trouver du soutien et vous connecter avec des personnes bienveillantes</p>
+      <button class="btn-secondary" style="width: auto; display: inline-flex;" id="start-sharing-btn">
+        <i class="fas fa-feather"></i> Commencer à partager
+      </button>
+    </div>
+
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-number" id="users-count">0</div>
+        <div class="stat-label">Membres bienveillants</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="messages-count">0</div>
+        <div class="stat-label">Messages partagés</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="cris-count">0</div>
+        <div class="stat-label">Cris du cœur</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="support-count">24/7</div>
+        <div class="stat-label">Soutien disponible</div>
+      </div>
+    </div>
+
+    <div class="card" id="expression-section">
+      <h2><i class="fas fa-feather"></i> Exprime ce que tu ressens</h2>
+      <p>Choisissez comment vous souhaitez partager votre message :</p>
+      
+      <div class="privacy-options">
+        <div class="privacy-option">
+          <input type="radio" id="private" name="privacy" value="private" checked>
+          <label for="private">
+            <span class="radio-icon"></span>
+            <i class="fas fa-lock"></i>
+            <div>
+              <div style="font-weight: 600;">Message privé</div>
+              <div style="font-size: 0.8rem; color: var(--text-light);">Seulement visible par vous</div>
+            </div>
+          </label>
+        </div>
+        <div class="privacy-option">
+          <input type="radio" id="public" name="privacy" value="public">
+          <label for="public">
+            <span class="radio-icon"></span>
+            <i class="fas fa-globe"></i>
+            <div>
+              <div style="font-weight: 600;">Cri du cœur</div>
+              <div style="font-size: 0.8rem; color: var(--text-light);">Partagé avec la communauté</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <form id="personal-form">
+        <textarea id="personal-message" placeholder="Écris ici ce qui t'habite le cœur... Tes mots seront accueillis avec bienveillance ❤️" rows="5"></textarea>
+        <button type="submit">
+          <i class="fas fa-paper-plane"></i> Partager mon message
+        </button>
+      </form>
+    </div>
+
+    <div class="mood-tracker">
+      <h3><i class="fas fa-smile"></i> Comment vous sentez-vous aujourd'hui ?</h3>
+      <div class="mood-options">
+        <div class="mood-option" data-mood="excellent">
+          <span class="mood-emoji">😊</span>
+          <span>Bien</span>
+        </div>
+        <div class="mood-option" data-mood="good">
+          <span class="mood-emoji">😌</span>
+          <span>Serein</span>
+        </div>
+        <div class="mood-option" data-mood="neutral">
+          <span class="mood-emoji">😐</span>
+          <span>Neutre</span>
+        </div>
+        <div class="mood-option" data-mood="bad">
+          <span class="mood-emoji">😔</span>
+          <span>Triste</span>
+        </div>
+        <div class="mood-option" data-mood="terrible">
+          <span class="mood-emoji">😢</span>
+          <span>Accablé</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tips-container">
+      <div class="tip-card">
+        <div class="tip-icon">
+          <i class="fas fa-hands-helping"></i>
+        </div>
+        <h3>Bienveillance</h3>
+        <p>Chaque message est accueilli sans jugement. Nous écoutons et soutenons.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3>Confidentialité</h3>
+        <p>Votre anonymat est préservé. Partagez en toute tranquillité d'esprit.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">
+          <i class="fas fa-heartbeat"></i>
+        </div>
+        <h3>Soutien émotionnel</h3>
+        <p>Une communauté à l'écoute pour vous accompagner dans vos moments.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="chat">
+    <div class="card">
+      <h2><i class="fas fa-comments"></i> Espace de discussion</h2>
+      <p>Échangez avec la communauté dans un cadre respectueux et bienveillant</p>
+      
+      <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+          <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Chargement des messages…
+          </div>
+        </div>
+        
+        <div id="edit-mode-banner" class="edit-mode-banner hidden">
+          <i class="fas fa-edit"></i> Mode édition activé
+          <button onclick="cancelEdit()" style="background: white; color: var(--warning); margin-left: 1rem; padding: 0.3rem 0.8rem; border: none; border-radius: 6px; font-size: 0.8rem;">
+            Annuler
+          </button>
+        </div>
+        
+        <div class="chat-input-container">
+          <form id="chat-form">
+            <textarea id="chat-text" placeholder="Partagez vos pensées avec la communauté..." rows="3"></textarea>
+            <button type="submit" id="chat-submit">
+              <i class="fas fa-paper-plane"></i> Envoyer
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cris">
+    <div class="card">
+      <h2><i class="fas fa-volume-up"></i> Les Cris du Cœur</h2>
+      <p>Messages de soutien partagés par la communauté. Exprimez votre solidarité.</p>
+      
+      <div class="cris-grid" id="cris-grid">
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Chargement des cris du cœur…
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="publications">
+    <div class="card">
+      <h2><i class="fas fa-newspaper"></i> Mes Publications</h2>
+      <p>Gérez vos messages partagés dans la section "Les Cris"</p>
+      
+      <div class="publications-grid" id="publications-grid">
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Chargement de vos publications…
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="resources">
+    <div class="card">
+      <h2><i class="fas fa-hands-helping"></i> Ressources de soutien</h2>
+      <p>Des outils et ressources pour vous accompagner dans votre bien-être émotionnel</p>
+      
+      <div class="resources-grid">
+        <div class="resource-card">
+          <h3><i class="fas fa-book"></i> Journal émotionnel</h3>
+          <p>Tenir un journal de vos émotions peut vous aider à mieux les comprendre et les gérer.</p>
+          <button class="btn-small" style="margin-top: 1rem;">
+            <i class="fas fa-plus"></i> Commencer un journal
+          </button>
+        </div>
+        
+        <div class="resource-card">
+          <h3><i class="fas fa-meditation"></i> Exercices de respiration</h3>
+          <p>Des techniques simples pour calmer l'anxiété et retrouver votre centre.</p>
+          <button class="btn-small" style="margin-top: 1rem;">
+            <i class="fas fa-play"></i> Démarrer un exercice
+          </button>
+        </div>
+        
+        <div class="resource-card">
+          <h3><i class="fas fa-heart"></i> Auto-compassion</h3>
+          <p>Apprenez à être plus doux avec vous-même dans les moments difficiles.</p>
+          <button class="btn-small" style="margin-top: 1rem;">
+            <i class="fas fa-book-open"></i> Découvrir
+          </button>
+        </div>
+        
+        <div class="resource-card">
+          <h3><i class="fas fa-hand-holding-heart"></i> Lignes d'écoute</h3>
+          <p>Des professionnels sont disponibles si vous avez besoin de parler.</p>
+          <button class="btn-small" style="margin-top: 1rem;">
+            <i class="fas fa-phone"></i> Voir les contacts
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDqNGfyizePPtiLDME9Z6OkncRaxWWNAvE",
+      authDomain: "murmuresducoeur.firebaseapp.com",
+      databaseURL: "https://murmuresducoeur-default-rtdb.firebaseio.com",
+      projectId: "murmuresducoeur",
+      storageBucket: "murmuresducoeur.firebasestorage.app",
+      messagingSenderId: "459129346137",
+      appId: "1:459129346137:web:5850d7536a8242d7473948"
+    };
+
+    // Initialisation Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Références Firebase
+    const usersRef = db.ref('users');
+    const chatRef = db.ref('chat');
+    const crisRef = db.ref('cris');
+    const supportsRef = db.ref('supports');
+    const userReadTimesRef = db.ref('user_read_times');
+    const moodsRef = db.ref('moods');
+    const userMoodsRef = db.ref('user_moods');
+
+    function hashPassword(pseudo, password) {
+      return btoa(pseudo + '|' + password).substring(0, 32);
+    }
+
+    let currentUser = null;
+    let currentEditKey = null;
+    let lastDate = null;
+    let unreadMessagesCount = 0;
+    let unreadCrisCount = 0;
+    let lastReadTime = 0;
+    let lastCrisReadTime = 0;
+    let currentUserMood = null;
+
+    // Gestion du menu responsive
+    document.addEventListener('DOMContentLoaded', function() {
+      const menuToggle = document.getElementById('menu-toggle');
+      const mainNav = document.getElementById('main-nav');
+      const userInfo = document.getElementById('user-info');
+      const userDropdown = document.getElementById('user-dropdown');
+
+      // Toggle menu mobile
+      if (menuToggle) {
+        menuToggle.addEventListener('click', function() {
+          mainNav.classList.toggle('active');
+          menuToggle.innerHTML = mainNav.classList.contains('active') 
+            ? '<i class="fas fa-times"></i>' 
+            : '<i class="fas fa-bars"></i>';
+        });
+      }
+
+      // Toggle dropdown utilisateur
+      if (userInfo) {
+        userInfo.addEventListener('click', function(e) {
+          e.stopPropagation();
+          userDropdown.classList.toggle('active');
+        });
+      }
+
+      // Fermer le dropdown en cliquant ailleurs
+      document.addEventListener('click', function() {
+        userDropdown.classList.remove('active');
+      });
+
+      // Fermer le menu mobile au clic sur un lien
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+          if (window.innerWidth <= 768) {
+            mainNav.classList.remove('active');
+            menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+          }
+        });
+      });
+
+      // Adapter le menu au redimensionnement
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+          mainNav.classList.remove('active');
+          menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+        }
+      });
+    });
+
+    // === RESTAURER SESSION ===
+    function restoreSession() {
+      const saved = localStorage.getItem('murmures_user');
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+          document.getElementById('user-display').textContent = currentUser.pseudo;
+          document.getElementById('user-info').classList.remove('hidden');
+          document.getElementById('auth-modal').classList.add('hidden');
+          initializeUserSession();
+          return true;
+        } catch (e) {
+          console.error("Erreur restauration session:", e);
+          localStorage.removeItem('murmures_user');
+        }
+      }
+      return false;
+    }
+
+    // === INITIALISATION SESSION UTILISATEUR ===
+    function initializeUserSession() {
+      loadLastReadTimes();
+      loadMessages();
+      loadCris();
+      loadPublications();
+      updateStats();
+      setupNotifications();
+      setupMoodTracker();
+      loadUserMood();
+    }
+
+    // === CHARGEMENT DE L'HUMEUR UTILISATEUR ===
+    function loadUserMood() {
+      if (!currentUser) return;
+      
+      userMoodsRef.child(currentUser.pseudo).on('value', (snapshot) => {
+        const moodData = snapshot.val();
+        if (moodData) {
+          currentUserMood = moodData.mood;
+          updateUserMoodDisplay();
+        }
+      });
+    }
+
+    // === MISE À JOUR DE L'AFFICHAGE DE L'HUMEUR ===
+    function updateUserMoodDisplay() {
+      const moodDisplay = document.getElementById('user-mood');
+      if (!moodDisplay) return;
+
+      const moodEmojis = {
+        'excellent': '😊',
+        'good': '😌',
+        'neutral': '😐',
+        'bad': '😔',
+        'terrible': '😢'
+      };
+
+      moodDisplay.textContent = currentUserMood ? moodEmojis[currentUserMood] || '' : '';
+    }
+
+    // === CHARGEMENT DES DERNIERS TEMPS DE LECTURE ===
+    function loadLastReadTimes() {
+      const chatReadTimeRef = db.ref(`user_read_times/${currentUser.pseudo}/chat`);
+      const crisReadTimeRef = db.ref(`user_read_times/${currentUser.pseudo}/cris`);
+      
+      chatReadTimeRef.once('value', (snapshot) => {
+        lastReadTime = snapshot.exists() ? snapshot.val() : Date.now();
+        if (!snapshot.exists()) {
+          chatReadTimeRef.set(lastReadTime);
+        }
+        updateUnreadCount();
+      });
+      
+      crisReadTimeRef.once('value', (snapshot) => {
+        lastCrisReadTime = snapshot.exists() ? snapshot.val() : Date.now();
+        if (!snapshot.exists()) {
+          crisReadTimeRef.set(lastCrisReadTime);
+        }
+        updateUnreadCrisCount();
+      });
+    }
+
+    // === MISE À JOUR DES TEMPS DE LECTURE ===
+    function updateReadTime(type) {
+      const time = Date.now();
+      const readTimeRef = db.ref(`user_read_times/${currentUser.pseudo}/${type}`);
+      readTimeRef.set(time);
+      
+      if (type === 'chat') {
+        lastReadTime = time;
+        updateUnreadCount();
+      } else if (type === 'cris') {
+        lastCrisReadTime = time;
+        updateUnreadCrisCount();
+      }
+    }
+
+    // === CONFIGURATION DES NOTIFICATIONS ===
+    function setupNotifications() {
+      // Notifications pour les messages de chat
+      chatRef.on('child_added', (snapshot) => {
+        const msg = snapshot.val();
+        const messageTime = msg.timestamp || Date.now();
+        
+        if (messageTime > lastReadTime && msg.pseudo !== currentUser.pseudo) {
+          updateUnreadCount();
+        }
+      });
+
+      // Notifications pour les nouveaux cris
+      crisRef.on('child_added', (snapshot) => {
+        const cris = snapshot.val();
+        const crisTime = cris.timestamp || Date.now();
+        
+        if (crisTime > lastCrisReadTime && cris.pseudo !== currentUser.pseudo) {
+          updateUnreadCrisCount();
+        }
+      });
+    }
+
+    // === MISE À JOUR DES COMPTEURS DE NOTIFICATIONS ===
+    function updateUnreadCount() {
+      chatRef.once('value', (snapshot) => {
+        const messages = snapshot.val() || {};
+        let unreadCount = 0;
+
+        Object.values(messages).forEach(msg => {
+          const messageTime = msg.timestamp || 0;
+          if (messageTime > lastReadTime && msg.pseudo !== currentUser.pseudo) {
+            unreadCount++;
+          }
+        });
+
+        unreadMessagesCount = unreadCount;
+        const notificationBadge = document.getElementById('chat-notification');
+        
+        if (unreadCount > 0) {
+          notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+          notificationBadge.classList.remove('hidden');
+        } else {
+          notificationBadge.classList.add('hidden');
+        }
+      });
+    }
+
+    function updateUnreadCrisCount() {
+      crisRef.once('value', (snapshot) => {
+        const cris = snapshot.val() || {};
+        let unreadCount = 0;
+
+        Object.values(cris).forEach(cri => {
+          const criTime = cri.timestamp || 0;
+          if (criTime > lastCrisReadTime && cri.pseudo !== currentUser.pseudo) {
+            unreadCount++;
+          }
+        });
+
+        unreadCrisCount = unreadCount;
+        const notificationBadge = document.getElementById('cris-notification');
+        
+        if (unreadCount > 0) {
+          notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+          notificationBadge.classList.remove('hidden');
+        } else {
+          notificationBadge.classList.add('hidden');
+        }
+      });
+    }
+
+    // === MISE À JOUR DES STATISTIQUES ===
+    function updateStats() {
+      usersRef.on('value', (snapshot) => {
+        const users = snapshot.val() || {};
+        document.getElementById('users-count').textContent = Object.keys(users).length;
+      });
+
+      chatRef.on('value', (snapshot) => {
+        const messages = snapshot.val() || {};
+        document.getElementById('messages-count').textContent = Object.keys(messages).length;
+      });
+
+      crisRef.on('value', (snapshot) => {
+        const cris = snapshot.val() || {};
+        document.getElementById('cris-count').textContent = Object.keys(cris).length;
+      });
+    }
+
+    // === CONFIGURATION DU TRACKER D'HUMEUR ===
+    function setupMoodTracker() {
+      const moodOptions = document.querySelectorAll('.mood-option');
+      
+      moodOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          const mood = this.getAttribute('data-mood');
+          
+          // Retirer la classe active de toutes les options
+          moodOptions.forEach(opt => opt.classList.remove('active'));
+          // Ajouter la classe active à l'option sélectionnée
+          this.classList.add('active');
+          
+          if (currentUser) {
+            // Sauvegarder l'humeur de l'utilisateur
+            userMoodsRef.child(currentUser.pseudo).set({
+              mood: mood,
+              timestamp: Date.now()
+            }).then(() => {
+              currentUserMood = mood;
+              updateUserMoodDisplay();
+              
+              // Feedback visuel
+              const originalBg = this.style.background;
+              this.style.background = 'var(--success)';
+              this.style.color = 'white';
+              
+              setTimeout(() => {
+                this.style.background = originalBg;
+                this.style.color = '';
+              }, 1000);
+            });
+          }
+        });
+      });
+    }
+
+    // === DÉCONNEXION ===
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      currentUser = null;
+      currentEditKey = null;
+      lastDate = null;
+      unreadMessagesCount = 0;
+      unreadCrisCount = 0;
+      lastReadTime = 0;
+      lastCrisReadTime = 0;
+      currentUserMood = null;
+      localStorage.removeItem('murmures_user');
+      document.getElementById('user-info').classList.add('hidden');
+      document.getElementById('auth-modal').classList.remove('hidden');
+      document.getElementById('chat-messages').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement des messages…</div>';
+      document.getElementById('cris-grid').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement des cris du cœur…</div>';
+      document.getElementById('publications-grid').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement de vos publications…</div>';
+      document.getElementById('chat-notification').classList.add('hidden');
+      document.getElementById('cris-notification').classList.add('hidden');
+      cancelEdit();
+    });
+
+    // Vérifier la session au chargement
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!restoreSession()) {
+        document.getElementById('auth-modal').classList.remove('hidden');
+      }
+    });
+
+    // === BOUTON "COMMENCER À PARTAGER" ===
+    document.getElementById('start-sharing-btn').addEventListener('click', () => {
+      document.getElementById('expression-section').scrollIntoView({ 
+        behavior: 'smooth' 
+      });
+    });
+
+    // === INSCRIPTION ===
+    document.getElementById('signup-btn').addEventListener('click', () => {
+      const pseudo = document.getElementById('login-pseudo').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorDiv = document.getElementById('auth-error');
+      errorDiv.textContent = '';
+
+      if (!pseudo || pseudo.length < 2 || pseudo.length > 20) {
+        errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Pseudonyme : 2 à 20 caractères.';
+        return;
+      }
+      if (!password || password.length < 3) {
+        errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Mot de passe : au moins 3 caractères.';
+        return;
+      }
+
+      const userRef = db.ref('users/' + pseudo);
+      userRef.once('value', (snapshot) => {
+        if (snapshot.exists()) {
+          errorDiv.innerHTML = '<i class="fas fa-user-times"></i> Ce pseudonyme est déjà pris.';
+        } else {
+          const hash = hashPassword(pseudo, password);
+          userRef.set({ 
+            password: hash, 
+            created: Date.now(),
+            lastLogin: Date.now()
+          }).then(() => {
+            currentUser = { pseudo, password: hash };
+            localStorage.setItem('murmures_user', JSON.stringify(currentUser));
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('user-display').textContent = pseudo;
+            document.getElementById('user-info').classList.remove('hidden');
+            errorDiv.innerHTML = '<i class="fas fa-check-circle"></i> Inscription réussie!';
+            initializeUserSession();
+          }).catch((error) => {
+            console.error("Inscription échouée :", error);
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erreur: ' + (error.message || "Problème de connexion à la base de données");
+          });
+        }
+      });
+    });
+
+    // === CONNEXION ===
+    document.getElementById('login-btn').addEventListener('click', () => {
+      const pseudo = document.getElementById('login-pseudo').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorDiv = document.getElementById('auth-error');
+      errorDiv.textContent = '';
+
+      if (!pseudo || !password) {
+        errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Veuillez remplir tous les champs.';
+        return;
+      }
+
+      const userRef = db.ref('users/' + pseudo);
+      userRef.once('value', (snapshot) => {
+        if (!snapshot.exists()) {
+          errorDiv.innerHTML = '<i class="fas fa-user-times"></i> Pseudonyme introuvable.';
+        } else {
+          const hash = hashPassword(pseudo, password);
+          const userData = snapshot.val();
+          
+          if (userData.password === hash) {
+            userRef.update({
+              lastLogin: Date.now()
+            }).then(() => {
+              currentUser = { pseudo, password: hash };
+              localStorage.setItem('murmures_user', JSON.stringify(currentUser));
+              document.getElementById('auth-modal').classList.add('hidden');
+              document.getElementById('user-display').textContent = pseudo;
+              document.getElementById('user-info').classList.remove('hidden');
+              errorDiv.innerHTML = '<i class="fas fa-check-circle"></i> Connexion réussie!';
+              initializeUserSession();
+            });
+          } else {
+            errorDiv.innerHTML = '<i class="fas fa-lock"></i> Mot de passe incorrect.';
+          }
+        }
+      });
+    });
+
+    // === NAVIGATION ===
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = link.getAttribute('data-page');
+        document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById(page).classList.add('active');
+        document.getElementById(page).classList.add('fade-in');
+
+        // Mettre à jour le temps de lecture selon la page
+        if (page === 'chat') {
+          updateReadTime('chat');
+        } else if (page === 'cris') {
+          updateReadTime('cris');
+        }
+      });
+    });
+
+    // === CHARGEMENT DES MESSAGES ===
+    function loadMessages() {
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement des messages…</div>';
+      
+      // Charger les humeurs des utilisateurs
+      const userMoods = {};
+      userMoodsRef.once('value').then((snapshot) => {
+        const moods = snapshot.val() || {};
+        Object.keys(moods).forEach(username => {
+          userMoods[username] = moods[username].mood;
+        });
+      });
+
+      chatRef.on('value', (snapshot) => {
+        const messages = snapshot.val() || {};
+        const messagesArray = Object.entries(messages)
+          .map(([key, value]) => ({ key, ...value }))
+          .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        
+        chatMessages.innerHTML = '';
+        lastDate = null;
+        
+        if (messagesArray.length === 0) {
+          chatMessages.innerHTML = '<div class="text-muted" style="text-align: center; padding: 2rem;">Aucun message pour le moment. Soyez le premier à partager !</div>';
+          return;
+        }
+        
+        messagesArray.forEach(msg => {
+          displayMessage(msg, userMoods);
+        });
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      });
+    }
+
+    function displayMessage(msg, userMoods = {}) {
+      const chatMessages = document.getElementById('chat-messages');
+      const messageDate = new Date(msg.timestamp || Date.now());
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      let dateLabel = '';
+      if (!lastDate || lastDate.toDateString() !== messageDate.toDateString()) {
+        if (messageDate.toDateString() === today.toDateString()) {
+          dateLabel = "Aujourd'hui";
+        } else if (messageDate.toDateString() === yesterday.toDateString()) {
+          dateLabel = 'Hier';
+        } else {
+          dateLabel = messageDate.toLocaleDateString('fr-FR', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+        }
+        
+        const dateSeparator = document.createElement('div');
+        dateSeparator.className = 'date-separator';
+        dateSeparator.innerHTML = `<span class="date-label">${dateLabel}</span>`;
+        chatMessages.appendChild(dateSeparator);
+        
+        lastDate = messageDate;
+      }
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chat-message ${msg.pseudo === currentUser.pseudo ? 'own' : 'other'}`;
+      messageDiv.dataset.key = msg.key;
+      
+      const timeString = messageDate.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+
+      // Récupérer l'humeur de l'utilisateur
+      const userMood = userMoods[msg.pseudo];
+      const moodEmojis = {
+        'excellent': '😊',
+        'good': '😌',
+        'neutral': '😐',
+        'bad': '😔',
+        'terrible': '😢'
+      };
+      const moodEmoji = userMood ? moodEmojis[userMood] : '';
+      
+      messageDiv.innerHTML = `
+        <div class="chat-pseudo">
+          <i class="fas fa-user"></i> ${msg.pseudo}
+          ${moodEmoji ? `<span class="user-mood">${moodEmoji}</span>` : ''}
+        </div>
+        <div class="chat-text">${msg.text}</div>
+        <div class="chat-time" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">${timeString}</div>
+        ${msg.pseudo === currentUser.pseudo ? `
+          <div class="chat-actions">
+            <button class="btn-edit" onclick="editMessage('${msg.key}', '${msg.text.replace(/'/g, "\\'")}')">
+              <i class="fas fa-edit"></i> Modifier
+            </button>
+            <button class="btn-delete" onclick="deleteMessage('${msg.key}')">
+              <i class="fas fa-trash"></i> Supprimer
+            </button>
+          </div>
+        ` : ''}
+      `;
+      
+      chatMessages.appendChild(messageDiv);
+    }
+
+    // === ENVOI DE MESSAGE ===
+    document.getElementById('chat-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = document.getElementById('chat-text').value.trim();
+      
+      if (!text || !currentUser) return;
+      
+      if (currentEditKey) {
+        // Mode édition
+        const updates = {};
+        updates[`chat/${currentEditKey}/text`] = text;
+        updates[`chat/${currentEditKey}/edited`] = true;
+        updates[`chat/${currentEditKey}/editTimestamp`] = Date.now();
+        
+        db.ref().update(updates).then(() => {
+          document.getElementById('chat-text').value = '';
+          cancelEdit();
+        });
+      } else {
+        // Nouveau message
+        const newMessage = {
+          pseudo: currentUser.pseudo,
+          text: text,
+          timestamp: Date.now()
+        };
+        
+        chatRef.push(newMessage).then(() => {
+          document.getElementById('chat-text').value = '';
+        });
+      }
+    });
+
+    // === ÉDITION DE MESSAGE ===
+    window.editMessage = function(key, text) {
+      currentEditKey = key;
+      document.getElementById('chat-text').value = text;
+      document.getElementById('edit-mode-banner').classList.remove('hidden');
+      document.getElementById('chat-submit').innerHTML = '<i class="fas fa-save"></i> Mettre à jour';
+      document.getElementById('chat-text').focus();
+    };
+
+    window.cancelEdit = function() {
+      currentEditKey = null;
+      document.getElementById('chat-text').value = '';
+      document.getElementById('edit-mode-banner').classList.add('hidden');
+      document.getElementById('chat-submit').innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer';
+    };
+
+    // === SUPPRESSION DE MESSAGE ===
+    window.deleteMessage = function(key) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+        db.ref('chat/' + key).remove();
+      }
+    };
+
+    // === CHARGEMENT DES CRIS ===
+    function loadCris() {
+      const crisGrid = document.getElementById('cris-grid');
+      crisGrid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement des cris du cœur…</div>';
+      
+      crisRef.on('value', (snapshot) => {
+        const cris = snapshot.val() || {};
+        const crisArray = Object.entries(cris)
+          .map(([key, value]) => ({ key, ...value }))
+          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        
+        crisGrid.innerHTML = '';
+        
+        if (crisArray.length === 0) {
+          crisGrid.innerHTML = '<div class="text-muted" style="text-align: center; padding: 2rem; grid-column: 1 / -1;">Aucun cri du cœur pour le moment. Soyez le premier à partager !</div>';
+          return;
+        }
+        
+        crisArray.forEach(cri => {
+          displayCri(cri);
+        });
+      });
+    }
+
+    function displayCri(cri) {
+      const crisGrid = document.getElementById('cris-grid');
+      const criDate = new Date(cri.timestamp || Date.now());
+      const timeString = criDate.toLocaleDateString('fr-FR') + ' à ' + criDate.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      const criCard = document.createElement('div');
+      criCard.className = 'cris-card';
+      criCard.dataset.key = cri.key;
+      
+      criCard.innerHTML = `
+        <div class="cris-meta">
+          <strong>${cri.pseudo}</strong>
+          <span class="text-muted">${timeString}</span>
+        </div>
+        <div class="cris-content">${cri.text}</div>
+        <div class="support-section">
+          <button class="support-btn" onclick="toggleSupport('${cri.key}')">
+            <i class="fas fa-heart"></i> Soutenir
+          </button>
+          <span class="support-count" id="support-count-${cri.key}">${cri.supportCount || 0}</span>
+        </div>
+        ${cri.pseudo === currentUser.pseudo ? `
+          <div class="cris-actions">
+            <button class="action-btn delete" onclick="deleteCri('${cri.key}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        ` : ''}
+      `;
+      
+      crisGrid.appendChild(criCard);
+      
+      // Vérifier si l'utilisateur a déjà soutenu ce cri
+      checkUserSupport(cri.key);
+    }
+
+    // === SUPPORT DES CRIS ===
+    window.toggleSupport = function(criKey) {
+      if (!currentUser) return;
+      
+      const supportRef = db.ref(`supports/${criKey}/${currentUser.pseudo}`);
+      
+      supportRef.once('value').then((snapshot) => {
+        if (snapshot.exists()) {
+          // Retirer le support
+          supportRef.remove().then(() => {
+            updateSupportCount(criKey);
+          });
+        } else {
+          // Ajouter le support
+          supportRef.set({
+            timestamp: Date.now()
+          }).then(() => {
+            updateSupportCount(criKey);
+          });
+        }
+      });
+    };
+
+    function checkUserSupport(criKey) {
+      if (!currentUser) return;
+      
+      const supportRef = db.ref(`supports/${criKey}/${currentUser.pseudo}`);
+      supportRef.once('value').then((snapshot) => {
+        const supportBtn = document.querySelector(`[onclick="toggleSupport('${criKey}')"]`);
+        if (snapshot.exists()) {
+          supportBtn.classList.add('active');
+          supportBtn.innerHTML = '<i class="fas fa-heart"></i> Soutenu';
+        } else {
+          supportBtn.classList.remove('active');
+          supportBtn.innerHTML = '<i class="fas fa-heart"></i> Soutenir';
+        }
+      });
+    }
+
+    function updateSupportCount(criKey) {
+      const supportRef = db.ref(`supports/${criKey}`);
+      supportRef.once('value').then((snapshot) => {
+        const supportCount = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+        
+        // Mettre à jour dans la base de données
+        db.ref(`cris/${criKey}/supportCount`).set(supportCount);
+        
+        // Mettre à jour l'affichage
+        const supportCountElement = document.getElementById(`support-count-${criKey}`);
+        if (supportCountElement) {
+          supportCountElement.textContent = supportCount;
+        }
+      });
+    }
+
+    // === SUPPRESSION D'UN CRI ===
+    window.deleteCri = function(key) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce cri du cœur ?')) {
+        db.ref('cris/' + key).remove();
+        // Supprimer également les supports associés
+        db.ref('supports/' + key).remove();
+      }
+    };
+
+    // === CHARGEMENT DES PUBLICATIONS ===
+    function loadPublications() {
+      const publicationsGrid = document.getElementById('publications-grid');
+      publicationsGrid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement de vos publications…</div>';
+      
+      if (!currentUser) return;
+      
+      crisRef.on('value', (snapshot) => {
+        const cris = snapshot.val() || {};
+        const userCris = Object.entries(cris)
+          .map(([key, value]) => ({ key, ...value }))
+          .filter(cri => cri.pseudo === currentUser.pseudo)
+          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        
+        publicationsGrid.innerHTML = '';
+        
+        if (userCris.length === 0) {
+          publicationsGrid.innerHTML = '<div class="text-muted" style="text-align: center; padding: 2rem; grid-column: 1 / -1;">Vous n\'avez pas encore publié de cri du cœur.</div>';
+          return;
+        }
+        
+        userCris.forEach(cri => {
+          displayPublication(cri);
+        });
+      });
+    }
+
+    function displayPublication(cri) {
+      const publicationsGrid = document.getElementById('publications-grid');
+      const criDate = new Date(cri.timestamp || Date.now());
+      const timeString = criDate.toLocaleDateString('fr-FR') + ' à ' + criDate.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      
+      const publicationCard = document.createElement('div');
+      publicationCard.className = 'cris-card';
+      publicationCard.dataset.key = cri.key;
+      
+      publicationCard.innerHTML = `
+        <div class="cris-meta">
+          <strong>${cri.pseudo}</strong>
+          <span class="text-muted">${timeString}</span>
+        </div>
+        <div class="cris-content">${cri.text}</div>
+        <div class="support-section">
+          <span class="support-count"><i class="fas fa-heart"></i> ${cri.supportCount || 0} soutiens</span>
+        </div>
+        <div class="cris-actions">
+          <button class="action-btn delete" onclick="deleteCri('${cri.key}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+      
+      publicationsGrid.appendChild(publicationCard);
+    }
+
+    // === FORMULAIRE DE PARTAGE PERSONNEL ===
+    document.getElementById('personal-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = document.getElementById('personal-message').value.trim();
+      const privacy = document.querySelector('input[name="privacy"]:checked').value;
+      
+      if (!text || !currentUser) return;
+      
+      if (privacy === 'private') {
+        // Message privé (à implémenter selon les besoins)
+        alert('Message privé sauvegardé !');
+        document.getElementById('personal-message').value = '';
+      } else {
+        // Cri du cœur public
+        const newCri = {
+          pseudo: currentUser.pseudo,
+          text: text,
+          timestamp: Date.now(),
+          supportCount: 0
+        };
+        
+        crisRef.push(newCri).then(() => {
+          document.getElementById('personal-message').value = '';
+          alert('Votre cri du cœur a été partagé avec la communauté !');
+        });
+      }
+    });
+
+    // Écouter les changements de supports pour mettre à jour en temps réel
+    supportsRef.on('child_added', (snapshot) => {
+      updateSupportCount(snapshot.key);
+      checkUserSupport(snapshot.key);
+    });
+
+    supportsRef.on('child_removed', (snapshot) => {
+      updateSupportCount(snapshot.key);
+      checkUserSupport(snapshot.key);
+    });
+
+    // Mettre à jour les compteurs de notifications périodiquement
+    setInterval(() => {
+      if (currentUser) {
+        updateUnreadCount();
+        updateUnreadCrisCount();
+      }
+    }, 30000);
+  </script>
+</body>
+</html>
