@@ -81,6 +81,28 @@
       50% { transform: translateY(-10px); }
     }
 
+    /* Styles pour le formatage automatique */
+    .auto-format {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        line-height: 1.6;
+        font-family: inherit;
+    }
+    
+    .format-markdown {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .format-markdown strong {
+        font-weight: bold;
+        color: #d35400;
+    }
+    
+    .format-markdown em {
+        font-style: italic;
+        color: #27ae60;
+    }
+
     /* Modal Styles */
     .modal {
       position: fixed; 
@@ -573,6 +595,12 @@
       gap: 0.5rem;
     }
     
+    .chat-text {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.6;
+    }
+    
     .chat-actions { 
       margin-top:0.8rem; 
       text-align:right; 
@@ -715,6 +743,8 @@
     .cris-content {
       margin-bottom: 1rem;
       line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
     
     .cris-meta {
@@ -960,6 +990,8 @@
     
     .journal-entry-content {
       line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
     
     .journal-entry-actions {
@@ -1871,6 +1903,29 @@
     const journalRef = db.ref('journal');
     const notificationsRef = db.ref('notifications');
 
+    // Fonction de formatage automatique CORRIGÉE
+    function formatText(text) {
+      if (!text) return '';
+      
+      // Protection XSS basique - échapper seulement les balises dangereuses
+      let safeText = text
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+        .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+        .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '');
+      
+      // Appliquer le formatage markdown basique
+      return safeText
+        // Sauts de ligne -> <br>
+        .replace(/\n/g, '<br>')
+        // **gras** -> <strong>
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        // *italique* -> <em>
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        // _italique_ -> <em>
+        .replace(/_(.*?)_/g, '<em>$1</em>');
+    }
+
     function hashPassword(pseudo, password) {
       return btoa(pseudo + '|' + password).substring(0, 32);
     }
@@ -1967,7 +2022,7 @@
           <strong>${dateString}</strong>
           <span>${timeString}</span>
         </div>
-        <div class="journal-entry-content">${entry.text}</div>
+        <div class="journal-entry-content">${formatText(entry.text)}</div>
         <div class="journal-entry-actions">
           <button class="btn-small btn-secondary" onclick="deleteJournalPageEntry('${entry.key}')">
             <i class="fas fa-trash"></i> Supprimer
@@ -2710,7 +2765,7 @@
           <i class="fas fa-user"></i> ${msg.pseudo}
           ${moodEmoji ? `<span class="user-mood">${moodEmoji}</span>` : ''}
         </div>
-        <div class="chat-text">${msg.text}</div>
+        <div class="chat-text">${formatText(msg.text)}</div>
         <div class="chat-time" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">${timeString}</div>
         ${msg.pseudo === currentUser.pseudo ? `
           <div class="chat-actions">
@@ -2823,7 +2878,7 @@
           <strong>${cri.pseudo}</strong>
           <span class="text-muted">${timeString}</span>
         </div>
-        <div class="cris-content">${cri.text}</div>
+        <div class="cris-content">${formatText(cri.text)}</div>
         <div class="support-section">
           <button class="support-btn" onclick="toggleSupport('${cri.key}')">
             <i class="fas fa-heart"></i> Soutenir
@@ -2953,7 +3008,7 @@
           <strong>${cri.pseudo}</strong>
           <span class="text-muted">${timeString}</span>
         </div>
-        <div class="cris-content">${cri.text}</div>
+        <div class="cris-content">${formatText(cri.text)}</div>
         <div class="support-section">
           <span class="support-count"><i class="fas fa-heart"></i> ${cri.supportCount || 0} soutiens</span>
         </div>
@@ -3068,7 +3123,7 @@
           <strong>De: ${msg.from}</strong>
           <span>${timeString}</span>
         </div>
-        <div class="admin-message-content">${msg.text}</div>
+        <div class="admin-message-content">${formatText(msg.text)}</div>
         <button class="btn-small" onclick="replyToMessage('${msg.key}', '${msg.from}')">
           <i class="fas fa-reply"></i> Répondre
         </button>
@@ -3165,7 +3220,7 @@
           <strong>De: ${notification.from}</strong>
           <span>${timeString}</span>
         </div>
-        <div class="notification-content">${notification.message}</div>
+        <div class="notification-content">${formatText(notification.message)}</div>
       `;
       
       notificationsContainer.appendChild(notificationDiv);
